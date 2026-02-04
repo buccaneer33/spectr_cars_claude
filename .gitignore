@@ -1,0 +1,11 @@
+
+#Ignore thumbnails created by Windows
+Thumbs.db
+#Ignore files built by Visual Studio
+obj/
+.vs/
+.idea/
+packages/
+
+.claude/
+.git/

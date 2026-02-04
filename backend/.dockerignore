@@ -1,0 +1,41 @@
+# All node_modules (main cause of slow build context)
+**/node_modules
+
+# Build outputs (will be rebuilt in container)
+**/dist
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# IDE
+.idea
+.vscode
+**/*.swp
+**/*.swo
+
+# Git
+.git
+.gitignore
+
+# Logs
+**/*.log
+**/npm-debug.log*
+
+# Tests
+**/coverage
+**/*.test.ts
+**/*.spec.ts
+**/__tests__
+
+# Documentation
+**/*.md
+LICENSE
+
+# Prisma migrations (optional, can include if needed)
+# **/prisma/migrations
+
+# OS files
+.DS_Store
+Thumbs.db

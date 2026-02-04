@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const search_controller_1 = require("../controllers/search.controller");
+const shared_1 = require("@cars/shared");
+const search_validator_1 = require("../validators/search.validator");
+const router = (0, express_1.Router)();
+const searchController = new search_controller_1.SearchController();
+router.get('/cars', (0, shared_1.validateQuery)(search_validator_1.searchFiltersSchema), (req, res, next) => searchController.searchCars(req, res, next));
+router.get('/brands', (req, res, next) => searchController.getBrands(req, res, next));
+router.get('/body-types', (req, res, next) => searchController.getBodyTypes(req, res, next));
+router.get('/fuel-types', (req, res, next) => searchController.getFuelTypes(req, res, next));
+exports.default = router;

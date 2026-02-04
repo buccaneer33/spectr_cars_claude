@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const sessions_controller_1 = require("../controllers/sessions.controller");
+const shared_1 = require("@cars/shared");
+const chat_validator_1 = require("../validators/chat.validator");
+const router = (0, express_1.Router)();
+const sessionsController = new sessions_controller_1.SessionsController();
+router.post('/', shared_1.optionalAuth, (0, shared_1.validateBody)(chat_validator_1.createSessionSchema), (req, res, next) => sessionsController.createSession(req, res, next));
+router.get('/', shared_1.authMiddleware, (req, res, next) => sessionsController.getSessions(req, res, next));
+router.get('/:sessionId', shared_1.authMiddleware, (req, res, next) => sessionsController.getSession(req, res, next));
+exports.default = router;

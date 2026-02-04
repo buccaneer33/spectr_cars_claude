@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const messages_controller_1 = require("../controllers/messages.controller");
+const shared_1 = require("@cars/shared");
+const chat_validator_1 = require("../validators/chat.validator");
+const router = (0, express_1.Router)();
+const messagesController = new messages_controller_1.MessagesController();
+router.post('/:sessionId/messages', shared_1.optionalAuth, (0, shared_1.validateBody)(chat_validator_1.sendMessageSchema), (req, res, next) => messagesController.sendMessage(req, res, next));
+exports.default = router;

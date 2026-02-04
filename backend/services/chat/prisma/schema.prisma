@@ -1,0 +1,70 @@
+// Chat Service Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ChatSession {
+  id             String            @id @default(uuid())
+  userId         String?           @map("user_id")
+  title          String            @default("Новый диалог") @db.VarChar(255)
+  contextSummary Json?             @map("context_summary")
+  status         ChatSessionStatus @default(active)
+  createdAt      DateTime          @default(now()) @map("created_at")
+  finishedAt     DateTime?         @map("finished_at")
+
+  messages     ChatMessage[]
+  searchResult SearchResult?
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id            String          @id @default(uuid())
+  chatSessionId String          @map("chat_session_id")
+  role          ChatMessageRole
+  content       String          @db.Text
+  metadata      Json?
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  chatSession ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@index([chatSessionId, createdAt])
+  @@map("chat_messages")
+}
+
+model SearchResult {
+  id                 String   @id @default(uuid())
+  chatSessionId      String   @unique @map("chat_session_id")
+  userId             String   @map("user_id")
+  searchQuerySummary String?  @map("search_query_summary") @db.Text
+  resultData         Json     @map("result_data")
+  isSaved            Boolean  @default(false) @map("is_saved")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  chatSession ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isSaved])
+  @@index([createdAt])
+  @@map("search_results")
+}
+
+enum ChatSessionStatus {
+  active
+  completed
+  archived
+}
+
+enum ChatMessageRole {
+  user
+  assistant
+  system
+}

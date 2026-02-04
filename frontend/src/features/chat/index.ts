@@ -1,0 +1,9 @@
+export { ChatPage } from './pages/ChatPage';
+export { Message } from './components/Message';
+export { MessageList } from './components/MessageList';
+export { MessageInput } from './components/MessageInput';
+export { ComparisonTable } from './components/ComparisonTable';
+export { TypingIndicator } from './components/TypingIndicator';
+export { useChatSession } from './hooks/use-chat-session';
+export { useChatMessages } from './hooks/use-chat-messages';
+export { useSendMessage } from './hooks/use-send-message';

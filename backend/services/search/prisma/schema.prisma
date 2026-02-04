@@ -1,0 +1,161 @@
+// Search Service Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === СПРАВОЧНИКИ ===
+
+model Country {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique @db.Char(2)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cities City[]
+  brands Brand[]
+
+  @@map("Country")
+}
+
+model City {
+  id        Int      @id @default(autoincrement())
+  name      String
+  countryId Int      @map("countryId")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  country Country @relation(fields: [countryId], references: [id])
+
+  @@index([countryId])
+  @@map("City")
+}
+
+model Brand {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String
+  countryName String   @map("countryName")  // Переименовано из country
+  logo        String?
+  isPopular   Boolean  @default(false) @map("isPopular")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Связь с Country
+  countryId Int?     @map("countryId")
+  country   Country? @relation(fields: [countryId], references: [id])
+
+  models         Model[]
+  specifications Specification[]
+
+  @@index([name])
+  @@index([countryId])  // Добавлен индекс для связи
+  @@map("Brand")
+}
+
+model Model {
+  id           Int      @id @default(autoincrement())
+  name         String
+  code         String
+  brandId      Int      @map("brandId")
+  generationId String   @map("generationId")
+  image        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  brand          Brand           @relation(fields: [brandId], references: [id])
+  specifications Specification[]
+
+  @@index([brandId])
+  @@index([name])
+  @@map("Model")
+}
+
+model BodyType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  specifications Specification[]
+
+  @@map("BodyType")
+}
+
+model FuelType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  specifications Specification[]
+
+  @@map("FuelType")
+}
+
+model Transmission {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  specifications Specification[]
+
+  @@map("Transmission")
+}
+
+model DriveType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  specifications Specification[]
+
+  @@map("DriveType")
+}
+
+// === ХАРАКТЕРИСТИКИ МОДЕЛЕЙ ===
+
+model Specification {
+  id                        Int      @id @default(autoincrement())
+  modelId                   Int      @map("modelId")
+  brandId                   Int      @map("brandId")
+  name                      String
+  externalId                String   @map("externalId")
+  bodyTypeId                Int      @map("bodyTypeId")
+  engineVolume              Decimal  @map("engineVolume") @db.Decimal(3, 1)
+  horsepower                Int
+  fuelTypeId                Int      @map("fuelTypeId")
+  transmissionId            Int      @map("transmissionId")
+  driveTypeId               Int?     @map("driveTypeId")
+  yearFrom                  Int      @map("yearFrom")
+  yearTo                    Int      @map("yearTo")
+  priceMin                  Int      @map("priceMin")
+  priceMax                  Int      @map("priceMax")
+  fuelConsumption           Decimal  @map("fuelConsumption") @db.Decimal(4, 1)
+  acceleration0to100        Decimal  @map("acceleration0to100") @db.Decimal(4, 1)
+  maxSpeed                  Int      @map("maxSpeed")
+  maintenanceCostPerYear    Int      @map("maintenanceCostPerYear")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  model        Model        @relation(fields: [modelId], references: [id])
+  brand        Brand        @relation(fields: [brandId], references: [id])
+  bodyType     BodyType     @relation(fields: [bodyTypeId], references: [id])
+  fuelType     FuelType     @relation(fields: [fuelTypeId], references: [id])
+  transmission Transmission @relation(fields: [transmissionId], references: [id])
+  driveType    DriveType?   @relation(fields: [driveTypeId], references: [id])
+
+  @@index([modelId])
+  @@index([brandId])
+  @@index([bodyTypeId, fuelTypeId])
+  @@map("Specification")
+}

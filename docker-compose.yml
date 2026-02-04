@@ -1,0 +1,275 @@
+version: '3.8'
+
+# Общие настройки для переиспользования
+x-common-variables: &common-variables
+  NODE_ENV: ${NODE_ENV:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+x-common-healthcheck: &common-healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 60s
+
+networks:
+  cars-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+services:
+  # ==================== DATABASES ====================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: cars_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/scripts/init-databases.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - cars-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      <<: *common-healthcheck
+
+  redis:
+    image: redis:7-alpine
+    container_name: cars_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cars-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      <<: *common-healthcheck
+
+  # ==================== BACKEND SERVICES ====================
+
+  user-service:
+    build:
+      context: ./backend
+      dockerfile: services/users/Dockerfile
+    container_name: cars_user_service
+    restart: unless-stopped
+    environment:
+      <<: *common-variables
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/users_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      PORT: 4001
+    ports:
+      - "4001:4001"
+    networks:
+      - cars-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4001/health"]
+      <<: *common-healthcheck
+
+  search-service:
+    build:
+      context: ./backend
+      dockerfile: services/search/Dockerfile
+    container_name: cars_search_service
+    restart: unless-stopped
+    environment:
+      <<: *common-variables
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/search_db
+      REDIS_URL: redis://redis:6379
+      PORT: 4002
+    ports:
+      - "4002:4002"
+    networks:
+      - cars-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4002/health"]
+      <<: *common-healthcheck
+
+  chat-service:
+    build:
+      context: ./backend
+      dockerfile: services/chat/Dockerfile
+    container_name: cars_chat_service
+    restart: unless-stopped
+    environment:
+      <<: *common-variables
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/chat_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      USER_SERVICE_URL: http://user-service:4001
+      SEARCH_SERVICE_URL: http://search-service:4002
+      LLM_ORCHESTRATOR_URL: http://llm-orchestrator:8080
+      PORT: 4003
+    ports:
+      - "4003:4003"
+    networks:
+      - cars-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      search-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4003/health"]
+      <<: *common-healthcheck
+
+  # ==================== LLM ORCHESTRATOR ====================
+
+  llm-orchestrator:
+    build:
+      context: ./llm-orchestrator
+      dockerfile: Dockerfile
+    container_name: cars_llm_orchestrator
+    restart: unless-stopped
+    environment:
+      <<: *common-variables
+      LLM_PROVIDER: ${LLM_PROVIDER:-deepseek}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-deepseek-chat}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.deepseek.com}
+      REDIS_URL: redis://redis:6379
+      SEARCH_SERVICE_URL: http://search-service:4002
+      USER_SERVICE_URL: http://user-service:4001
+      CHAT_SERVICE_URL: http://chat-service:4003
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - cars-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      search-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      <<: *common-healthcheck
+
+  # ==================== NGINX GATEWAY ====================
+
+  nginx:
+    build:
+      context: ./infrastructure/nginx
+      dockerfile: Dockerfile
+    container_name: cars_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - cars-network
+    depends_on:
+      user-service:
+        condition: service_healthy
+      search-service:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      llm-orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      <<: *common-healthcheck
+
+  # ==================== FRONTEND ====================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:80}
+    container_name: cars_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - cars-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000"]
+      <<: *common-healthcheck
+
+  # ==================== DEVELOPMENT TOOLS ====================
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cars_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@cars.ru}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - cars-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - dev
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/misc/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: cars_redis_commander
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - cars-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - dev
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

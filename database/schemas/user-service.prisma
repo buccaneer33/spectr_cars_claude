@@ -1,0 +1,53 @@
+// User Service Schema
+// ВАЖНО: Это должно быть синхронизировано с backend/services/users/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client-users"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String      @map("password_hash")
+  name         String?
+  avatarUrl    String?     @map("avatar_url")
+  role         UserRole    @default(USER)
+  status       UserStatus  @default(ACTIVE)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  profile      UserProfile?
+
+  @@map("users")
+}
+
+model UserProfile {
+  userId                  String   @id @map("user_id")
+  preferredBudgetMinRub   Decimal? @map("preferred_budget_min_rub") @db.Decimal(12, 2)
+  preferredBudgetMaxRub   Decimal? @map("preferred_budget_max_rub") @db.Decimal(12, 2)
+  preferredBodyTypeId     String?  @map("preferred_body_type_id")
+  preferredFuelTypeId     String?  @map("preferred_fuel_type_id")
+  cityId                  String?  @map("city_id")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  PENDING
+}

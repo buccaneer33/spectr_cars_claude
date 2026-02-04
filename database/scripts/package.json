@@ -1,0 +1,12 @@
+{
+  "name": "cars-database-scripts",
+  "version": "1.0.0",
+  "description": "Database scripts for Cars AI Consultant",
+  "main": "parse-cars-xml.js",
+  "scripts": {
+    "parse": "node parse-cars-xml.js"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.3.4"
+  }
+}

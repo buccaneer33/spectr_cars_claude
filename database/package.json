@@ -1,0 +1,23 @@
+{
+  "name": "@cars/database",
+  "version": "1.0.0",
+  "description": "Database configuration and seed scripts for Cars AI Consultant",
+  "private": true,
+  "scripts": {
+    "seed:users": "tsx seeds/users/seed.ts",
+    "seed:search": "tsx seeds/search/seed.ts",
+    "seed:chat": "tsx seeds/chat/seed.ts",
+    "seed:all": "npm run seed:users && npm run seed:search && npm run seed:chat"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "bcrypt": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/bcrypt": "^5.0.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "prisma": "^5.20.0"
+  }
+}
