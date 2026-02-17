@@ -1,6 +1,7 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache openssl
+# Install openssl for Prisma and netcat for health checks
+RUN apk add --no-cache openssl netcat-openbsd
 
 WORKDIR /app
 
@@ -23,6 +24,10 @@ COPY services/search/ ./
 RUN npx prisma generate
 RUN npm run build
 
+# Copy entrypoint script
+COPY services/search/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 4002
 
-CMD ["npm", "start"]
+ENTRYPOINT ["docker-entrypoint.sh"]

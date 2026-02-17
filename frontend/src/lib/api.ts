@@ -18,27 +18,27 @@ export const authApi = {
   login: (data: LoginRequest) =>
     apiRequest<AuthResponse>({
       method: 'POST',
-      url: '/api/auth/login',
+      url: '/auth/login',
       data,
     }),
 
   register: (data: RegisterRequest) =>
     apiRequest<AuthResponse>({
       method: 'POST',
-      url: '/api/auth/register',
+      url: '/auth/register',
       data,
     }),
 
   logout: () =>
     apiRequest<void>({
       method: 'POST',
-      url: '/api/auth/logout',
+      url: '/auth/logout',
     }),
 
   me: () =>
     apiRequest<User>({
       method: 'GET',
-      url: '/api/auth/me',
+      url: '/auth/me',
     }),
 };
 
@@ -47,44 +47,44 @@ export const chatApi = {
   createSession: () =>
     apiRequest<ChatSession>({
       method: 'POST',
-      url: '/api/chat/sessions',
+      url: '/chat/sessions',
     }),
 
   getSessions: () =>
     apiRequest<ChatSession[]>({
       method: 'GET',
-      url: '/api/chat/sessions',
+      url: '/chat/sessions',
     }),
 
   getSession: (sessionId: string) =>
     apiRequest<ChatSession>({
       method: 'GET',
-      url: `/api/chat/sessions/${sessionId}`,
+      url: `/chat/sessions/${sessionId}`,
     }),
 
   getMessages: (sessionId: string) =>
     apiRequest<ChatMessage[]>({
       method: 'GET',
-      url: `/api/chat/sessions/${sessionId}/messages`,
+      url: `/chat/sessions/${sessionId}/messages`,
     }),
 
   sendMessage: (sessionId: string, data: SendMessageRequest) =>
     apiRequest<SendMessageResponse>({
       method: 'POST',
-      url: `/api/chat/sessions/${sessionId}/messages`,
+      url: `/chat/sessions/${sessionId}/messages`,
       data,
     }),
 
   deleteSession: (sessionId: string) =>
     apiRequest<void>({
       method: 'DELETE',
-      url: `/api/chat/sessions/${sessionId}`,
+      url: `/chat/sessions/${sessionId}`,
     }),
 
   clearMessages: (sessionId: string) =>
     apiRequest<void>({
       method: 'DELETE',
-      url: `/api/chat/sessions/${sessionId}/messages`,
+      url: `/chat/sessions/${sessionId}/messages`,
     }),
 };
 
@@ -93,7 +93,7 @@ export const llmApi = {
   getWelcome: () =>
     apiRequest<{ role: string; content: string }>({
       method: 'GET',
-      url: '/api/llm/welcome',
+      url: '/llm/welcome',
     }),
 };
 
@@ -102,19 +102,19 @@ export const searchApi = {
   saveResult: (resultId: string) =>
     apiRequest<SearchResult>({
       method: 'POST',
-      url: `/api/chat/search-results/${resultId}/save`,
+      url: `/chat/search-results/${resultId}/save`,
     }),
 
   getSavedResults: () =>
     apiRequest<SearchResult[]>({
       method: 'GET',
-      url: '/api/chat/search-results/saved',
+      url: '/chat/search-results/saved',
     }),
 
   deleteResult: (resultId: string) =>
     apiRequest<void>({
       method: 'DELETE',
-      url: `/api/chat/search-results/${resultId}`,
+      url: `/chat/search-results/${resultId}`,
     }),
 };
 
@@ -123,13 +123,13 @@ export const profileApi = {
   getProfile: () =>
     apiRequest<UserProfile>({
       method: 'GET',
-      url: '/api/users/profile',
+      url: '/users/profile',
     }),
 
   updateProfile: (data: UpdateProfileRequest) =>
     apiRequest<UserProfile>({
       method: 'PUT',
-      url: '/api/users/profile',
+      url: '/users/profile',
       data,
     }),
 };
