@@ -18,7 +18,7 @@ export function MessageInput({ sessionId }: MessageInputProps) {
   const handleSend = useCallback(() => {
     if (!inputValue.trim() || isLoading || isAssistantTyping) return;
 
-    sendMessage(inputValue);
+    sendMessage(`${inputValue}`);
     setInputValue('');
   }, [inputValue, isLoading, isAssistantTyping, sendMessage]);
 
