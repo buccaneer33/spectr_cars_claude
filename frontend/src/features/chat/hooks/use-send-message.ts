@@ -16,7 +16,6 @@ export function useSendMessage(sessionId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: (data: SendMessageRequest) => {
-      console.log('fn mutate: ', data);
       if (!sessionId) throw new Error('No session');
       return chatApi.sendMessage(sessionId, data);
     },
@@ -29,7 +28,6 @@ export function useSendMessage(sessionId: string | undefined) {
         content: variables.content,
         createdAt: new Date().toISOString(),
       };
-      console.log('on mutate: ', optimisticUserMessage);
 
       addOptimisticMessage(optimisticUserMessage);
       addMessage(optimisticUserMessage);
@@ -69,9 +67,9 @@ export function useSendMessage(sessionId: string | undefined) {
   });
 
   const sendMessage = (content: string) => {
-    console.log('sendMessage:', { content, sessionId });
-    if (!content.trim()) return;
-    mutation.mutate({ content: content.trim() });
+    const trimmed = content.trim();
+    if (!trimmed) return;
+    mutation.mutate({ content: trimmed });
   };
 
   return {
