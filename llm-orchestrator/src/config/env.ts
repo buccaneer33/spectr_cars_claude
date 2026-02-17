@@ -13,13 +13,13 @@ export const config = {
   },
 
   redis: {
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
+    url: process.env.REDIS_URL || 'redis://redis:6379',
   },
 
   services: {
-    search: process.env.SEARCH_SERVICE_URL || 'http://localhost:4002',
-    user: process.env.USER_SERVICE_URL || 'http://localhost:4001',
-    chat: process.env.CHAT_SERVICE_URL || 'http://localhost:4003',
+    search: process.env.SEARCH_SERVICE_URL || 'http://search-service:4002',
+    user: process.env.USER_SERVICE_URL || 'http://user-service:4001',
+    chat: process.env.CHAT_SERVICE_URL || 'http://chat-service:4003',
   },
 
   cors: {

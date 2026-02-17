@@ -4,7 +4,7 @@ export class LLMClientService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.LLM_ORCHESTRATOR_URL || 'http://localhost:8080';
+    this.baseUrl = process.env.LLM_ORCHESTRATOR_URL || 'http://llm-orchestrator:8080';
   }
 
   async sendMessage(sessionId: string, userId: string | null, message: string) {

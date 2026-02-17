@@ -12,8 +12,8 @@ RUN npm i
 # Copy source files
 COPY . .
 
-# Build argument for API URL
-ARG VITE_API_URL=http://localhost:80
+# Build argument for API URL (relative path for SPA - requests go to same origin)
+ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build the application

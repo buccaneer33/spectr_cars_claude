@@ -1,0 +1,27 @@
+# Development overrides
+# Скопируйте в docker-compose.override.yml для локальной разработки
+# docker-compose автоматически подхватывает override файл
+
+version: '3.8'
+
+services:
+  user-service:
+    environment:
+      FRONTEND_URL: http://localhost
+
+  search-service:
+    environment:
+      FRONTEND_URL: http://localhost
+
+  chat-service:
+    environment:
+      FRONTEND_URL: http://localhost
+
+  llm-orchestrator:
+    environment:
+      FRONTEND_URL: http://localhost
+
+  # Раскомментируйте для hot-reload в разработке:
+  # frontend:
+  #   volumes:
+  #     - ./frontend/src:/app/src

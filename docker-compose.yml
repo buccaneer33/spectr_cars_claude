@@ -214,7 +214,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:80}
+        VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: cars_frontend
     restart: unless-stopped
     ports:
@@ -222,7 +222,7 @@ services:
     networks:
       - cars-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
       <<: *common-healthcheck
 
   # ==================== DEVELOPMENT TOOLS ====================
@@ -248,7 +248,7 @@ services:
     profiles:
       - dev
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/misc/ping"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "/api/misc/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
