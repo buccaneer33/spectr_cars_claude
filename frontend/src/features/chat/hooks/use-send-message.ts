@@ -1,4 +1,4 @@
-import { useOptimistic, useCallback } from 'react';
+import { useOptimistic } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '@/lib/api';
 import { useChatStore } from '@/stores/chat-store';
@@ -16,6 +16,7 @@ export function useSendMessage(sessionId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: (data: SendMessageRequest) => {
+      console.log('fn mutate: ', data);
       if (!sessionId) throw new Error('No session');
       return chatApi.sendMessage(sessionId, data);
     },
@@ -28,6 +29,7 @@ export function useSendMessage(sessionId: string | undefined) {
         content: variables.content,
         createdAt: new Date().toISOString(),
       };
+      console.log('on mutate: ', optimisticUserMessage);
 
       addOptimisticMessage(optimisticUserMessage);
       addMessage(optimisticUserMessage);
@@ -66,20 +68,16 @@ export function useSendMessage(sessionId: string | undefined) {
     },
   });
 
-  const { mutate, isPending } = mutation;
-
-  const sendMessage = useCallback(
-    (content: string) => {
-      if (!content.trim() || !sessionId) return;
-      mutate({ content: content.trim() });
-    },
-    [sessionId, mutate]
-  );
+  const sendMessage = (content: string) => {
+    console.log('sendMessage:', { content, sessionId });
+    if (!content.trim()) return;
+    mutation.mutate({ content: content.trim() });
+  };
 
   return {
     sendMessage,
     optimisticMessages,
-    isLoading: isPending,
+    isLoading: mutation.isPending,
     error: mutation.error,
   };
 }
