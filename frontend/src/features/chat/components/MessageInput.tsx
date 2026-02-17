@@ -16,11 +16,12 @@ export function MessageInput({ sessionId }: MessageInputProps) {
   const { isAssistantTyping, clearMessages } = useChatStore();
 
   const handleSend = useCallback(() => {
-    if (!inputValue.trim() || isLoading || isAssistantTyping) return;
+    const message = inputValue.trim();
+    if (!message || !sessionId || isLoading || isAssistantTyping) return;
 
-    sendMessage(`${inputValue}`);
+    sendMessage(message);
     setInputValue('');
-  }, [inputValue, isLoading, isAssistantTyping, sendMessage]);
+  }, [inputValue, sessionId, isLoading, isAssistantTyping, sendMessage]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
