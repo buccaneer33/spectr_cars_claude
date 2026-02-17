@@ -66,18 +66,20 @@ export function useSendMessage(sessionId: string | undefined) {
     },
   });
 
+  const { mutate, isPending } = mutation;
+
   const sendMessage = useCallback(
     (content: string) => {
-      if (!content.trim() || !sessionId || mutation.isPending) return;
-      mutation.mutate({ content: content.trim() });
+      if (!content.trim() || !sessionId) return;
+      mutate({ content: content.trim() });
     },
-    [sessionId, mutation]
+    [sessionId, mutate]
   );
 
   return {
     sendMessage,
     optimisticMessages,
-    isLoading: mutation.isPending,
+    isLoading: isPending,
     error: mutation.error,
   };
 }
